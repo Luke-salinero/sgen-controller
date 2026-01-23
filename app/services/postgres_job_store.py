@@ -1,5 +1,6 @@
 from datetime import datetime
 from contextlib import contextmanager
+import json
 
 from sqlalchemy import text
 
@@ -30,11 +31,7 @@ class PostgresJobStore:
         job = Job(
             mode=req.mode,
             payload=req.config,
-            status=(
-                JobStatus.MOCKED
-                if req.mode == "mock"
-                else JobStatus.PENDING
-            ),
+            status=JobStatus.PENDING.value
         )
 
         with SessionLocal() as session:
@@ -52,7 +49,7 @@ class PostgresJobStore:
                     "job_id": job.job_id,
                     "mode": job.mode,
                     "status": job.status,
-                    "payload": job.payload,
+                    "payload": json.dumps(job.payload),
                     "created_at": job.created_at,
                     "updated_at": job.updated_at,
                 },

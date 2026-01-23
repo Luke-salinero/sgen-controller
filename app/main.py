@@ -5,14 +5,16 @@ from app.api.v1.jobs import router as jobs_router
 from app.services.async_runner import AsyncJobRunner
 
 
-runner = AsyncJobRunner(poll_interval_seconds=0.5)
+runner = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await runner.start()
+    if runner:
+        await runner.start()
     yield
-    await runner.stop()
+    if runner:
+        await runner.stop()
 
 
 def create_app() -> FastAPI:
