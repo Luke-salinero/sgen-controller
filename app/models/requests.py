@@ -1,5 +1,5 @@
+from typing import Dict, Any
 from pydantic import BaseModel
-from app.models.sgen import SGenSubmitRequest
 
 class CreateJobRequest(BaseModel):
-    config: SGenSubmitRequest
+    config: Dict[str, Any]

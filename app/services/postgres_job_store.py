@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import json
+from typing import Dict, Any
 
 from sqlalchemy import text
 
@@ -23,8 +24,8 @@ class PostgresJobStore:
         finally:
             conn.close()
 
-    def create_job(self, config: SGenSubmitRequest, mode: str = "live") -> Job:
-        payload = config.model_dump()
+    def create_job(self, config: Dict[str, Any], mode: str = "live") -> Job:
+        payload = config
 
         job = Job(
             mode=mode,
