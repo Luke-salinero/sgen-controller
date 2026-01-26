@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.sgen import SGenSubmitRequest
 from app.models.responses import JobCreatedResponse, JobResultResponse
 from app.services.postgres_job_store import PostgresJobStore
+from app.models.requests import CreateJobRequest
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -10,12 +10,8 @@ job_store = PostgresJobStore()
 
 
 @router.post("", response_model=JobCreatedResponse)
-async def create_job(req: SGenSubmitRequest):
-    """
-    Create a new job and return immediately.
-    Execution happens asynchronously in the controller runner.
-    """
-    job = job_store.create_job(req)
+async def create_job(req: CreateJobRequest):
+    job = job_store.create_job(req.config)
 
     return JobCreatedResponse(
         job_id=job.job_id,

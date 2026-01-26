@@ -1,4 +1,3 @@
-from datetime import datetime
 from contextlib import contextmanager
 import json
 
@@ -18,20 +17,19 @@ class PostgresJobStore:
 
     @contextmanager
     def _get_raw_connection(self):
-        """
-        Low-level connection helper for health / readiness checks.
-        """
         conn = engine.raw_connection()
         try:
             yield conn
         finally:
             conn.close()
 
-    def create_job(self, req: SGenSubmitRequest) -> Job:
+    def create_job(self, config: SGenSubmitRequest, mode: str = "live") -> Job:
+        payload = config.model_dump()
+
         job = Job(
-            mode=req.mode,
-            payload=req.config,
-            status=JobStatus.PENDING.value
+            mode=mode,
+            payload=payload,
+            status=JobStatus.PENDING.value,
         )
 
         with SessionLocal() as session:
@@ -42,16 +40,14 @@ class PostgresJobStore:
                     created_at, updated_at
                 ) VALUES (
                     :job_id, :mode, :status, :payload,
-                    :created_at, :updated_at
+                    NOW(), NOW()
                 )
                 """),
                 {
                     "job_id": job.job_id,
                     "mode": job.mode,
                     "status": job.status,
-                    "payload": json.dumps(job.payload),
-                    "created_at": job.created_at,
-                    "updated_at": job.updated_at,
+                    "payload": json.dumps(payload),
                 },
             )
             session.commit()
@@ -92,8 +88,8 @@ class PostgresJobStore:
                     RETURNING *
                     """),
                     {
-                        "pending": JobStatus.PENDING,
-                        "running": JobStatus.RUNNING,
+                        "pending": JobStatus.PENDING.value,
+                        "running": JobStatus.RUNNING.value,
                         "worker_id": worker_id,
                     },
                 ).mappings().first()
@@ -119,8 +115,8 @@ class PostgresJobStore:
                     """),
                     {
                         "job_id": job_id,
-                        "completed": JobStatus.COMPLETED,
-                        "result": result,
+                        "completed": JobStatus.COMPLETED.value,
+                        "result": json.dumps(result),
                     },
                 ).mappings().first()
 
@@ -145,8 +141,8 @@ class PostgresJobStore:
                     """),
                     {
                         "job_id": job_id,
-                        "failed": JobStatus.FAILED,
-                        "error": error,
+                        "failed": JobStatus.FAILED.value,
+                        "error": json.dumps(error),
                     },
                 ).mappings().first()
 
