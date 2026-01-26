@@ -1,18 +1,30 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+import os
 
 from app.api.v1.jobs import router as jobs_router
 from app.services.async_runner import AsyncJobRunner
 
 
-runner = None
+def get_runner() -> AsyncJobRunner | None:
+    """
+    Only run the AsyncJobRunner in mock mode.
+    In live mode, workers exclusively execute jobs.
+    """
+    if os.getenv("SGEN_MODE", "mock") == "mock":
+        return AsyncJobRunner()
+    return None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    runner = get_runner()
+
     if runner:
         await runner.start()
+
     yield
+
     if runner:
         await runner.stop()
 
