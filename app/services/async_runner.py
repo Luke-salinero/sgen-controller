@@ -64,9 +64,6 @@ class AsyncJobRunner:
 
         self._stop.clear()
 
-        # NEW: wait for DB before starting execution loop
-        await self._wait_for_db()
-
         self._task = asyncio.create_task(self._run_loop())
 
     async def stop(self) -> None:
@@ -79,6 +76,13 @@ class AsyncJobRunner:
                 pass
 
     async def _run_loop(self) -> None:
+        logger.info(
+            "AsyncJobRunner starting",
+            extra={"worker_id": self.worker_id}
+        )
+        # NEW: wait for DB before starting execution loop
+        await self._wait_for_db()
+
         logger.info(
             "AsyncJobRunner started",
             extra={"worker_id": self.worker_id},
