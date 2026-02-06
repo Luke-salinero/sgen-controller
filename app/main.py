@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     runner = get_runner()
 
     if runner:
-        await runner.start()
+        runner.start()
 
     yield
 

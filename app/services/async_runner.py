@@ -58,13 +58,17 @@ class AsyncJobRunner:
             except Exception:
                 await asyncio.sleep(1.0)
 
-    async def start(self) -> None:
+    def start(self) -> None:
         if self._task and not self._task.done():
             return
 
         self._stop.clear()
 
-        self._task = asyncio.create_task(self._run_loop())
+        async def runner_bootstrap():
+            await self._wait_for_db()
+            await self._run_loop()
+
+        self._task = asyncio.create_task(runner_bootstrap())
 
     async def stop(self) -> None:
         self._stop.set()
@@ -80,8 +84,6 @@ class AsyncJobRunner:
             "AsyncJobRunner starting",
             extra={"worker_id": self.worker_id}
         )
-        # NEW: wait for DB before starting execution loop
-        await self._wait_for_db()
 
         logger.info(
             "AsyncJobRunner started",
