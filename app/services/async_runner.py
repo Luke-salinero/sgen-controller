@@ -1,7 +1,7 @@
 import asyncio
 import os
 import logging
-
+from .postgres_job_store import ensure_schema
 from sqlalchemy.exc import OperationalError
 
 from app.services.postgres_job_store import PostgresJobStore
@@ -65,6 +65,7 @@ class AsyncJobRunner:
         self._stop.clear()
 
         async def runner_bootstrap():
+            ensure_schema()
             await self._wait_for_db()
             await self._run_loop()
 

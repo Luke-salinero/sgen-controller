@@ -8,6 +8,23 @@ from app.db.session import SessionLocal, engine
 from app.models.job import Job, JobStatus
 from app.models.sgen import SGenSubmitRequest
 
+def ensure_schema():
+    with engine.begin() as conn:
+        conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS jobs (
+            job_id TEXT PRIMARY KEY,
+            mode TEXT NOT NULL,
+            status TEXT NOT NULL,
+            payload JSONB NOT NULL,
+            result JSONB,
+            error JSONB,
+            worker_id TEXT,
+            created_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
+            started_at TIMESTAMP,
+            finished_at TIMESTAMP
+        )
+        """))
 
 class PostgresJobStore:
     """
