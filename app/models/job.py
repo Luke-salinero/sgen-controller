@@ -13,7 +13,7 @@ class JobStatus(str, Enum):
     These are owned by the control plane (sgen-controller),
     not by workers or the gateway.
     """
-
+    CREATED = "created"      # Created by gateway call
     PENDING = "pending"      # accepted, not yet running
     RUNNING = "running"      # claimed by a worker
     COMPLETED = "completed"  # finished successfully

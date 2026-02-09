@@ -93,37 +93,13 @@ class AsyncJobRunner:
 
         while not self._stop.is_set():
             try:
-                job = self._store.claim_next_pending_job(
-                    worker_id=self.worker_id
-                )
+
+                # Now we have the controller doing something
+                job = self._store.claim_next_created_job()
 
                 if not job:
                     await asyncio.sleep(self.poll_interval_seconds)
                     continue
-
-                if job.mode == "mock":
-                    try:
-                        result = mock_sgen_execution(job.payload)
-                        self._store.set_job_completed(
-                            job.job_id,
-                            result=result,
-                        )
-                    except Exception as exc:
-                        self._store.set_job_failed(
-                            job.job_id,
-                            error={"message": str(exc)},
-                        )
-                else:
-                    # Until sgen-worker exists, fail fast for live jobs
-                    self._store.set_job_failed(
-                        job.job_id,
-                        error={
-                            "message": (
-                                "live execution not implemented "
-                                "(waiting for sgen-worker)"
-                            )
-                        },
-                    )
 
             except Exception as exc:
                 logger.exception(
