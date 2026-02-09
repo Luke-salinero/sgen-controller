@@ -47,7 +47,7 @@ class PostgresJobStore:
         job = Job(
             mode=mode,
             payload=payload,
-            status=JobStatus.PENDING.value,
+            status=JobStatus.CREATED.value,
         )
 
         with SessionLocal() as session:
@@ -109,6 +109,37 @@ class PostgresJobStore:
                         "pending": JobStatus.PENDING.value,
                         "running": JobStatus.RUNNING.value,
                         "worker_id": worker_id,
+                    },
+                ).mappings().first()
+
+                if not row:
+                    return None
+
+                return Job(**row)
+        
+    
+    def claim_next_created_job(self) -> Job | None:
+        with SessionLocal() as session:
+            with session.begin():
+                row = session.execute(
+                    text("""
+                    UPDATE jobs
+                    SET
+                      status = :pending,
+                      updated_at = NOW()
+                    WHERE job_id = (
+                      SELECT job_id
+                      FROM jobs
+                      WHERE status = :created
+                      ORDER BY created_at ASC
+                      LIMIT 1
+                      FOR UPDATE SKIP LOCKED
+                    )
+                    RETURNING *
+                    """),
+                    {
+                        "pending": JobStatus.PENDING.value,
+                        "created": JobStatus.CREATED.value,
                     },
                 ).mappings().first()
 
