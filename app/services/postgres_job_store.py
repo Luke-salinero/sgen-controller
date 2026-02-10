@@ -19,6 +19,7 @@ def ensure_schema():
             result JSONB,
             error JSONB,
             worker_id TEXT,
+            api_key_owner TEXT,
             created_at TIMESTAMP NOT NULL,
             updated_at TIMESTAMP NOT NULL,
             started_at TIMESTAMP,
@@ -41,7 +42,7 @@ class PostgresJobStore:
         finally:
             conn.close()
 
-    def create_job(self, config: Dict[str, Any], mode: str = "live") -> Job:
+    def create_job(self, config: Dict[str, Any], subject_id: str, mode: str = "live") -> Job:
         payload = config
 
         job = Job(
@@ -54,10 +55,10 @@ class PostgresJobStore:
             session.execute(
                 text("""
                 INSERT INTO jobs (
-                    job_id, mode, status, payload,
+                    job_id, mode, status, payload, api_key_owner,
                     created_at, updated_at
                 ) VALUES (
-                    :job_id, :mode, :status, :payload,
+                    :job_id, :mode, :status, :payload, :api_key_owner,
                     NOW(), NOW()
                 )
                 """),
@@ -66,6 +67,7 @@ class PostgresJobStore:
                     "mode": job.mode,
                     "status": job.status,
                     "payload": json.dumps(payload),
+                    "api_key_owner": subject_id,
                 },
             )
             session.commit()
