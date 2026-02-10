@@ -55,10 +55,10 @@ class PostgresJobStore:
             session.execute(
                 text("""
                 INSERT INTO jobs (
-                    job_id, mode, status, payload, api_key_owner
+                    job_id, mode, status, payload, api_key_owner,
                     created_at, updated_at
                 ) VALUES (
-                    :job_id, :mode, :status, :payload, :api_key_owner
+                    :job_id, :mode, :status, :payload, :api_key_owner,
                     NOW(), NOW()
                 )
                 """),
