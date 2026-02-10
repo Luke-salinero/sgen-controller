@@ -11,7 +11,7 @@ job_store = PostgresJobStore()
 
 @router.post("", response_model=JobCreatedResponse)
 async def create_job(req: CreateJobRequest):
-    job = job_store.create_job(req.config)
+    job = job_store.create_job(req.config, req.api_key_owner)
 
     return JobCreatedResponse(
         job_id=job.job_id,

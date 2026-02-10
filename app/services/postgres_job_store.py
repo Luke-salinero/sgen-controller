@@ -42,7 +42,7 @@ class PostgresJobStore:
         finally:
             conn.close()
 
-    def create_job(self, config: Dict[str, Any], subject_id: str, mode: str = "live") -> Job:
+    def create_job(self, config: Dict[str, Any], api_key_owner: str, mode: str = "live") -> Job:
         payload = config
 
         job = Job(
@@ -67,7 +67,7 @@ class PostgresJobStore:
                     "mode": job.mode,
                     "status": job.status,
                     "payload": json.dumps(payload),
-                    "api_key_owner": subject_id,
+                    "api_key_owner": api_key_owner,
                 },
             )
             session.commit()
